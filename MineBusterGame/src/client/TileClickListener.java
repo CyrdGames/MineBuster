@@ -54,15 +54,14 @@ public class TileClickListener implements MouseListener{
         if (e.getButton() == MouseEvent.BUTTON1){
             if ( checkTileClick(e.getX(), e.getY(), this.heldLeftX, this.heldLeftY) ){
                 int[] tile = determineTile(e.getX(), e.getY());
-                System.out.println(tile[0] + ":" + tile[1]);
-                this.manager.updateTileState(tile[0], tile[1], 0);
+                this.manager.revealTile(tile[0], tile[1]);
             }
             this.heldLeftX = -1;
             this.heldLeftY = -1;
         } else if (e.getButton() == MouseEvent.BUTTON3){
             if ( checkTileClick(e.getX(), e.getY(), this.heldRightX, this.heldRightY) ){
                 int[] tile = determineTile(e.getX(), e.getY());
-                this.manager.updateTileState(tile[0], tile[1], GameManager.FLAGGED);
+//                this.manager.updateTileState(tile[0], tile[1], GameManager.FLAGGED);
             }
             this.heldRightX = -1;
             this.heldRightY = -1;
