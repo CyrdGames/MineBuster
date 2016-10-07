@@ -4,6 +4,9 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import minebustergame.MineField;
 import minebustergame.Tile;
@@ -15,32 +18,99 @@ public class GameManager {
     private Tile[][] tiles;
     private MineField field;
     
-    public final static int FLAGGED = 9;
-    public final static int MINE = 10;
-    public final static int UNREVEALED = 11;
-    public final static int TILE_SIZE = 19;
-    public final static int WIDTH = 30;
-    public final static int HEIGHT = 16;
+    public final static int NUM_COLUMNS = 30;
+    public final static int NUM_ROWS = 16;
     
-    public GameManager(){
+    public boolean checkNeighbours = true;
+    private boolean firstClick;
+    
+    public GamePanel p;
+    
+    public GameManager(GamePanel panel){
         try{
+            this.p = panel;
             mainImage = ImageIO.read(new File("graphics/tiles.png"));
-            Tile.generateImages(mainImage, 32, 32, 12, TILE_SIZE);
+            Tile.generateImages(mainImage, 32, 32, 12);
         } catch (IOException e){
             System.err.println(e);
         }
         
-        field = new MineField(WIDTH, HEIGHT);
+        field = new MineField(NUM_COLUMNS, NUM_ROWS);
         tiles = field.getField();
+        firstClick = true;
     }
     
     public void revealTile(int x, int y) {
-        tiles[x][y].setState(0);
+//        System.out.println("tiles[" + x + "][" + y + "].getState(): " + tiles[x][y].getState());
+        if(firstClick) {
+            field.populateField(x, y);
+            tiles = field.getField();
+            firstClick = false;
+            revealTile(x,y);            
+        } else if (tiles[x][y].getState() == Tile.UNREVEALED){
+            tiles[x][y].setState(Tile.REVEALED);
+            
+            if(tiles[x][y].getType() == Tile.BOMB) {
+                try {
+                    revealAllBombs();
+                    p.listenerThread.sleep(10000l);
+                    System.exit(0);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            if (tiles[x][y].getType() == 0){
+                for (Tile t : tiles[x][y].getNeighbours()){
+                    revealTile(t.getX(), t.getY());
+                }
+            }
+        } else if (checkNeighbours && tiles[x][y].getState() == Tile.REVEALED/* && tiles[x][y].getType() != Tile.BOMB*/){
+            int numFlags = 0;
+            checkNeighbours = false;
+            ArrayList<Tile> neighbours = tiles[x][y].getNeighbours();
+                        
+            for(Tile t : neighbours) {
+                if(t.getState() == Tile.FLAGGED) {
+                    numFlags += 1;
+                }  
+            }
+            
+            System.out.println("flags: " + numFlags);
+            if (tiles[x][y].getType() == numFlags && tiles[x][y].getType() != 0){
+                for (Tile t : neighbours) {
+                    revealTile(t.getX(), t.getY());
+                }
+            }
+        }
+    }
+    
+    private void revealAllBombs() {
+        for(int i = 0; i < NUM_COLUMNS; i++) {
+            for(int j = 0; j < NUM_ROWS; j++) {
+                if(tiles[i][j].getType() == Tile.BOMB) {
+                    tiles[i][j].setState(Tile.REVEALED);
+                }
+            }
+        }
+    }
+    
+    public void flagTile(int x, int y) {
+        System.out.println("tiles[" + x + "][" + y + "].getState(): " + tiles[x][y].getState());
+        switch (tiles[x][y].getState()){
+            case Tile.UNREVEALED:
+                tiles[x][y].setState(Tile.FLAGGED);
+                break;
+            case Tile.FLAGGED:
+                tiles[x][y].setState(Tile.UNREVEALED);
+                break;
+        }
+        
     }
     
     public void draw(Graphics2D graphics){
-        for (int i = 0; i < WIDTH; i++){
-            for (int j = 0; j < HEIGHT; j++){
+        for (int i = 0; i < NUM_COLUMNS; i++){
+            for (int j = 0; j < NUM_ROWS; j++){
                 tiles[i][j].draw(graphics);
             }
         }       

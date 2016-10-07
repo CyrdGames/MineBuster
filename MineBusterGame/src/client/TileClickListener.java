@@ -2,6 +2,7 @@ package client;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import minebustergame.Tile;
 
 public class TileClickListener implements MouseListener{
     
@@ -54,6 +55,7 @@ public class TileClickListener implements MouseListener{
         if (e.getButton() == MouseEvent.BUTTON1){
             if ( checkTileClick(e.getX(), e.getY(), this.heldLeftX, this.heldLeftY) ){
                 int[] tile = determineTile(e.getX(), e.getY());
+                this.manager.checkNeighbours = true;
                 this.manager.revealTile(tile[0], tile[1]);
             }
             this.heldLeftX = -1;
@@ -61,20 +63,23 @@ public class TileClickListener implements MouseListener{
         } else if (e.getButton() == MouseEvent.BUTTON3){
             if ( checkTileClick(e.getX(), e.getY(), this.heldRightX, this.heldRightY) ){
                 int[] tile = determineTile(e.getX(), e.getY());
+                this.manager.flagTile(tile[0], tile[1]);
 //                this.manager.updateTileState(tile[0], tile[1], GameManager.FLAGGED);
             }
             this.heldRightX = -1;
             this.heldRightY = -1;
+        } else if (e.getButton() == MouseEvent.BUTTON2){
+            Tile.TILE_SIZE += 1;
         }
         int[] tile = determineTile(e.getX(), e.getY());
         System.out.println("Tile [" + tile[0] + "][" + tile[1] + "] pressed");
     }
     
     private boolean checkTileClick(int buttonX, int buttonY, int pressedX, int pressedY){
-        int minX = pressedX - pressedX % GameManager.TILE_SIZE;
-        int maxX = minX + (GameManager.TILE_SIZE - 1);
-        int minY = pressedY - pressedY % GameManager.TILE_SIZE;
-        int maxY = minY + (GameManager.TILE_SIZE - 1);
+        int minX = pressedX - pressedX % Tile.TILE_SIZE;
+        int maxX = minX + (Tile.TILE_SIZE - 1);
+        int minY = pressedY - pressedY % Tile.TILE_SIZE;
+        int maxY = minY + (Tile.TILE_SIZE - 1);
         if (buttonX >= minX && buttonX <= maxX && buttonY >= minY && buttonY <= maxY){
             System.out.println("Mouse pressed and released within same tile bound; increasing number of clicks");
             this.numTileClicks++;
@@ -85,8 +90,8 @@ public class TileClickListener implements MouseListener{
     
     private int[] determineTile(int buttonX, int buttonY){
         int[] tile = new int[2];
-        tile[0] = buttonX/GameManager.TILE_SIZE;
-        tile[1] = buttonY/GameManager.TILE_SIZE;
+        tile[0] = buttonX/Tile.TILE_SIZE;
+        tile[1] = buttonY/Tile.TILE_SIZE;
         return tile;
     }
     

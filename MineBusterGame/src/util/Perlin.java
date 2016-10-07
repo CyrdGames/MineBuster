@@ -33,11 +33,11 @@ public class Perlin {
 //        paintTransition(g, width, height, grid);
         int[][] mask = paintSolid(g, width, height, grid);
 
-        try {
-            ImageIO.write(im, "png", new File("booleanNoise.png"));
-        } catch (IOException ex) {
-            Logger.getLogger(MineBusterGame.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            ImageIO.write(im, "png", new File("booleanNoise.png"));
+//        } catch (IOException ex) {
+//            Logger.getLogger(MineBusterGame.class.getName()).log(Level.SEVERE, null, ex);
+//        }
 
         return mask;
     }

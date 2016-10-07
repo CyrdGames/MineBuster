@@ -16,7 +16,7 @@ public class GamePanel extends JPanel implements Runnable{
     private Graphics2D graphics;
     private BufferedImage mainImage;
     private TileClickListener mouseListener;
-    private Thread listenerThread;
+    public Thread listenerThread;
     
     private boolean running;
     
@@ -28,7 +28,7 @@ public class GamePanel extends JPanel implements Runnable{
         this.setFocusable(true);
         this.requestFocus();
         System.out.println("init");
-        this.manager = new GameManager();
+        this.manager = new GameManager(this);
         this.mainImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
         this.graphics = (Graphics2D) this.mainImage.getGraphics();
         this.running = true;
@@ -42,9 +42,9 @@ public class GamePanel extends JPanel implements Runnable{
         if(this.listenerThread == null){
             System.out.println("ADDNOTIFY CALLED");
             addMouseListener(mouseListener);
-            System.out.println(mouseListener);
             this.listenerThread = new Thread(this);
             this.listenerThread.start();
+            System.out.println(listenerThread);
         }
     }
     
@@ -61,15 +61,15 @@ public class GamePanel extends JPanel implements Runnable{
         
     }
     
-    private void init(){
-        System.out.println("init");
-        this.manager = new GameManager();
-        this.mainImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
-        this.graphics = (Graphics2D) this.mainImage.getGraphics();
-        this.running = true;
-        //this.mouseListener = new BobListener(this.manager);
-        this.listenerThread = null;
-    }
+//    private void init(){
+//        System.out.println("init");
+//        this.manager = new GameManager();
+//        this.mainImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
+//        this.graphics = (Graphics2D) this.mainImage.getGraphics();
+//        this.running = true;
+//        //this.mouseListener = new BobListener(this.manager);
+//        this.listenerThread = null;
+//    }
     
     private void drawToScreen(){
         Graphics screenGraphics = super.getGraphics();

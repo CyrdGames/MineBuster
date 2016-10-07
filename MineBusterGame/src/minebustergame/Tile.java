@@ -5,25 +5,46 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class Tile {
-
+    
     public static final int BOMB = 10;
-    public static final int FLAG = 9;
+    public static final int FLAGGED = 9;
     public static final int UNREVEALED = 11;
     public static final int REVEALED = 12;
     
-    private static final BufferedImage[] IMAGE = new BufferedImage[12];
-    private static int TILE_SIZE;
+    public static int TILE_SIZE = 19;
     
-    public int x, y;
-    public int type; //0 -> 8, 9 - Bomb
-    public int state; //0 - unrevealed     1 - flagged    2 - revealed
-    ArrayList<Tile> neighbours = new ArrayList();
+    private static final BufferedImage[] IMAGE = new BufferedImage[12];
+    
+    private int x, y;
+    private int type; //0 -> 8, 9 - Bomb
+    private int state; //0 - unrevealed     1 - flagged    2 - revealed
+    private ArrayList<Tile> neighbours = new ArrayList();
 
     public Tile(int x, int y) {
         this.x = x;
         this.y = y;
-        this.state = 0;
+        this.state = UNREVEALED;
         this.type = -1;
+    }
+    
+    public int getX(){
+        return this.x;
+    }
+    
+    public int getY(){
+        return this.y;
+    }
+    
+    public int getType(){
+        return this.type;
+    }
+    
+    public int getState(){
+        return this.state;
+    }
+    
+    public ArrayList<Tile> getNeighbours(){
+        return this.neighbours;
     }
 
     public void setType(int type) {
@@ -39,7 +60,6 @@ public class Tile {
     }
 
     public void calculateType() {
-        this.state = 2;
         if (this.type == -1) {
             this.type = 0;
 
@@ -52,18 +72,26 @@ public class Tile {
     }
     
     public void draw(Graphics2D g) {
-        if(state == 2) {
-            g.drawImage(IMAGE[11], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
-        } else {
-            g.drawImage(IMAGE[type], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+        switch(state){
+            case UNREVEALED:
+                g.drawImage(IMAGE[UNREVEALED], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+                break;
+            case FLAGGED:
+                g.drawImage(IMAGE[FLAGGED], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+                break;
+            case REVEALED:
+                g.drawImage(IMAGE[type], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+                break;
+            default:
+                System.err.println("Error: Unknown tile state [" + x + "][" + y + "]");
+                System.exit(0);
         }
     }
     
-    public static void generateImages(BufferedImage mainImage, int width, int height, int num, int scale) {
-        TILE_SIZE = scale;
+    public static void generateImages(BufferedImage mainImage, int width, int height, int num) {
         for (int i = 0; i < num; i++){
             IMAGE[i] = mainImage.getSubimage(i * width, 0, width, height);
-            IMAGE[i].createGraphics().scale(scale / 1.0 / width, scale / 1.0 / height);
+            IMAGE[i].createGraphics().scale(TILE_SIZE / 1.0 / width, TILE_SIZE / 1.0 / height);
         }
     }
 }
