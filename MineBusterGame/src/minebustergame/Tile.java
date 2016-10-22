@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 public class Tile {
     
+    public static final int FOG = 12;
     public static final int BOMB = 10;
     public static final int FLAGGED = 9;
     public static final int UNREVEALED = 11;
@@ -13,18 +14,28 @@ public class Tile {
     
     public static int TILE_SIZE = 19;
     
-    private static final BufferedImage[] IMAGE = new BufferedImage[12];
+    public boolean fogged;
+    public boolean detected;
+    public static boolean assist = false;
+    
+    private static final BufferedImage[] IMAGE = new BufferedImage[13];
     
     private int x, y;
     private int type; //0 -> 8, 9 - Bomb
+    public int currentType;
     private int state; //0 - unrevealed     1 - flagged    2 - revealed
-    private ArrayList<Tile> neighbours = new ArrayList();
+    private transient ArrayList<Tile> neighbours = null;
 
-    public Tile(int x, int y) {
+    public Tile(int x, int y, int size) {
+        System.out.println("inti");
         this.x = x;
         this.y = y;
+        this.fogged = false;
+        this.detected = false;
         this.state = UNREVEALED;
-        this.type = -1;
+        this.type = this.currentType = -1;
+        neighbours = new ArrayList();
+        Tile.TILE_SIZE = size;
     }
     
     public int getX(){
@@ -49,6 +60,7 @@ public class Tile {
 
     public void setType(int type) {
         this.type = type;
+        this.currentType = type;
     }
 
     public void setState(int state) {
@@ -56,6 +68,9 @@ public class Tile {
     }
 
     public void addNeighbour(Tile n) {
+        if(neighbours == null) {
+            neighbours = new ArrayList();
+        }
         neighbours.add(n);
     }
 
@@ -68,24 +83,41 @@ public class Tile {
                     this.type += 1;
                 }
             }
+            
+            this.currentType = type;
         }
     }
     
     public void draw(Graphics2D g) {
-        switch(state){
-            case UNREVEALED:
-                g.drawImage(IMAGE[UNREVEALED], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
-                break;
-            case FLAGGED:
-                g.drawImage(IMAGE[FLAGGED], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
-                break;
-            case REVEALED:
-                g.drawImage(IMAGE[type], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
-                break;
-            default:
-                System.err.println("Error: Unknown tile state [" + x + "][" + y + "]");
-                System.exit(0);
+        int drawType = currentType;
+        if(!assist) {            
+            drawType = type;
         }
+        
+        if(detected && type == BOMB && state != FLAGGED) {
+            g.drawImage(IMAGE[BOMB], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+        } else if(fogged && !detected) {
+            g.drawImage(IMAGE[FOG], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+        } else {
+            switch(state){
+                case UNREVEALED:
+                    g.drawImage(IMAGE[UNREVEALED], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+                    break;
+                case FLAGGED:
+                    if(assist) {
+                        g.drawImage(IMAGE[0], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+                    } else {
+                        g.drawImage(IMAGE[FLAGGED], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+                    }
+                    break;
+                case REVEALED:
+                    g.drawImage(IMAGE[drawType], x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, null);
+                    break;
+                default:
+                    System.err.println("Error: Unknown tile state [" + x + "][" + y + "]");
+                    System.exit(0);
+            }   
+        }   
     }
     
     public static void generateImages(BufferedImage mainImage, int width, int height, int num) {

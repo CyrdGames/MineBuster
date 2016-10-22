@@ -1,19 +1,26 @@
 package data;
 
+import client.GameManager;
+import static client.GameManager.field;
+import minebustergame.MineField;
+import util.Serialization;
+
 public class Account {
 
-    String name, password;
+    String name;
+    char[] password;
     boolean loggedIn = false;
 
-    public Account(String name, String password) {
+    public Account(String name, char[] password) {
         this.name = name;
         this.password = password;
     }
 
     public void createNewAccount() {
         Database.init();
-        String[] array = Authentication.createHash(this.password).split(":");
+        String[] array = Authentication.createHash(password).split(":");
         Database.addNewAccount(name, array[0], array[1], array[2]);
+        clearPassword();
     }
 
     public boolean login() {
@@ -21,12 +28,30 @@ public class Account {
         String hash = Database.getAccountInfo(name);
 
         if (!hash.isEmpty() && Authentication.checkPassword(password, hash)) {
+            clearPassword();
             System.out.println("Welcome, " + name + ".");
             loggedIn = true;
             return true;
         } else {
+            clearPassword();
             System.out.println("Go away, '" + name + "'.");
             return false;
+        }
+    }
+    
+    public void save() {
+        Serialization.serialize(GameManager.field, name);
+    }
+    
+    public void load() {
+        MineField f = (MineField)Serialization.deserialize(name);
+        f.setNeighbours();
+        GameManager.setField(f);
+    }
+    
+    private void clearPassword() {
+        for(char c : password) {
+            c = 0;
         }
     }
 }
