@@ -7,7 +7,11 @@ import javax.swing.*;
 
 public class AuthenticationPanel extends JPanel {
     
-    public AuthenticationPanel() {
+    private ClientLock syncSend;
+    //TODO: syncReceive may not be necessary
+    private ClientLock syncReceive;
+    
+    public AuthenticationPanel(ClientLock syncSend, ClientLock syncReceive) {
         super();
         JButton create = new JButton("Create Account");
         JButton login = new JButton("Login");
@@ -15,6 +19,8 @@ public class AuthenticationPanel extends JPanel {
         JTextField password = new JTextField("");
         JLabel userLabel = new JLabel("Username");
         JLabel passLabel = new JLabel("Password");
+        this.syncSend = syncSend;
+        this.syncReceive = syncReceive;
         
         username.setColumns(20);
         password.setColumns(20);
@@ -22,9 +28,9 @@ public class AuthenticationPanel extends JPanel {
         create.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println(e.getModifiers());
                 //TODO: determine constant 16
                 if(e.getModifiers() == 16) {
+                    sendMessage("testUsername", "testPassword");
                     System.out.println("Creating New Account");
                 }
             }            
@@ -36,5 +42,15 @@ public class AuthenticationPanel extends JPanel {
         this.add(password);
         this.add(login);
         this.add(create);
+    }
+    
+    private void sendMessage(String username, String password){
+        this.syncSend.lock.lock();
+        try {
+            this.syncSend.message = ("/createAccount " + username + " " + password).getBytes();
+            this.syncSend.condvar.signalAll();
+        } finally {
+            this.syncSend.lock.unlock();
+        }
     }
 }

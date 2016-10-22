@@ -13,6 +13,7 @@ public class TileClickListener implements MouseListener{
     //RMB
     private int heldRightX, heldRightY;
     private GameManager manager;
+    private ClientLock syncSend;
     
     public TileClickListener(){
         this.numLeftClicks = 0;
@@ -23,9 +24,10 @@ public class TileClickListener implements MouseListener{
         this.numTileClicks = 0;
     }
     
-    public TileClickListener(GameManager manager){
+    public TileClickListener(GameManager manager, ClientLock syncSend){
         this();
         this.manager = manager;
+        this.syncSend = syncSend;
     }
     
     @Override
@@ -55,6 +57,7 @@ public class TileClickListener implements MouseListener{
         if (e.getButton() == MouseEvent.BUTTON1){
             if ( checkTileClick(e.getX(), e.getY(), this.heldLeftX, this.heldLeftY) ){
                 int[] tile = determineTile(e.getX(), e.getY());
+                sendMessage(e.getButton(), tile);
                 this.manager.checkNeighbours = true;
                 this.manager.revealTile(tile[0], tile[1]);
             }
@@ -63,6 +66,7 @@ public class TileClickListener implements MouseListener{
         } else if (e.getButton() == MouseEvent.BUTTON3){
             if ( checkTileClick(e.getX(), e.getY(), this.heldRightX, this.heldRightY) ){
                 int[] tile = determineTile(e.getX(), e.getY());
+                sendMessage(e.getButton(), tile);
                 this.manager.flagTile(tile[0], tile[1]);
 //                this.manager.updateTileState(tile[0], tile[1], GameManager.FLAGGED);
             }
@@ -93,6 +97,16 @@ public class TileClickListener implements MouseListener{
         tile[0] = buttonX/Tile.TILE_SIZE;
         tile[1] = buttonY/Tile.TILE_SIZE;
         return tile;
+    }
+    
+    private void sendMessage(int mouseButton, int[] tile){
+        this.syncSend.lock.lock();
+        try {
+            this.syncSend.message = ("/click " + mouseButton + " " + tile[0] + " " + tile[1]).getBytes();
+            this.syncSend.condvar.signalAll();
+        } finally {
+            this.syncSend.lock.unlock();
+        }
     }
     
 }
