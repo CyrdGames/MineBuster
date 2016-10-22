@@ -6,10 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import minebustergame.MineBusterGame;
 
 public class Perlin {
 
@@ -32,12 +29,12 @@ public class Perlin {
 
 //        paintTransition(g, width, height, grid);
         int[][] mask = paintSolid(g, width, height, grid);
-
-//        try {
-//            ImageIO.write(im, "png", new File("booleanNoise.png"));
-//        } catch (IOException ex) {
-//            Logger.getLogger(MineBusterGame.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+        
+        try {
+            ImageIO.write(im, "png", new File("booleanNoise.png"));
+        } catch (IOException ex) {
+            System.out.println("error in drawing");
+        }
 
         return mask;
     }

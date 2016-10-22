@@ -14,3 +14,5 @@ hs_err_pid*
 /MineBusterGame/dist
 /MineBusterGame/build
 /MineBusterGame/nbproject/private
+/MineBusterGame/res/data/saves
+/MineBusterGame/res/data

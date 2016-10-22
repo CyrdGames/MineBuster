@@ -1,10 +1,12 @@
 package client;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import minebustergame.Tile;
 
-public class TileClickListener implements MouseListener{
+public class TileClickListener implements MouseListener, KeyListener {
     
     private int numLeftClicks;
     private int numTileClicks;
@@ -97,6 +99,28 @@ public class TileClickListener implements MouseListener{
         tile[0] = buttonX/Tile.TILE_SIZE;
         tile[1] = buttonY/Tile.TILE_SIZE;
         return tile;
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        if(e.getKeyChar() == 's') {
+            AuthenticationPanel.account.save();
+        } else if(e.getKeyChar() == 'l') {
+            AuthenticationPanel.account.load();
+        } 
+        
+        
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if(e.getKeyCode() == 17) {
+            this.manager.toggleAssist();
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {    
     }
     
     private void sendMessage(int mouseButton, int[] tile){

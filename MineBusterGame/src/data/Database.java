@@ -1,10 +1,16 @@
 package data;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.*;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -74,26 +80,55 @@ public class Database {
     }
 
     private static void createAccountSave(String name) throws IOException {
-        try {
-            File save = new File("res/data/saves/" + name + ".xml");
+        File save = new File("res/data/saves/" + name + ".json");
 
-            if (!save.exists()) {
-                save.createNewFile();
-            }
-
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document sdoc = dBuilder.newDocument();
-
-            Element root = sdoc.createElement(name + "-root");
-            root.setTextContent("\n");
-            sdoc.appendChild(root);
-
-            writeToFile(sdoc, save);
-        } catch (ParserConfigurationException ex) {
-            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        if (!save.exists()) {
+            save.createNewFile();
         }
     }
+    
+    public static void save(String name, String json) {
+        File save = new File("res/data/saves/" + name + ".json");
+        
+        if(!save.exists()) {
+            return;
+        }
+        
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(save));
+            writer.write(json);
+            writer.close();
+        } catch (IOException ex) {
+        } 
+    }
 
+    public static String getSave(String name) {
+        File save = new File("res/data/saves/" + name + ".json");
+        ArrayList<String> str = new ArrayList();
+        String json = "";
+        
+        if(!save.exists()) {
+            return json;
+        }
+        
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(save));
+            String line;
+            
+            while((line = reader.readLine()) != null) {
+                str.add(line);
+            }
+        } catch (FileNotFoundException ex) {
+        } catch (IOException ex) {
+        }
+        
+        for(String s : str) {
+            json += s + "\n";
+        }
+        
+        return json;
+    }
+    
     public static void addNewAccount(String name, String iteration, String salthash, String hash) {
 
         Node node = null;

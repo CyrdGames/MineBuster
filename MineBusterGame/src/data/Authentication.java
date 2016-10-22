@@ -17,13 +17,13 @@ public class Authentication {
     private static final int HASH_SIZE = 32;
     private static int ITERATIONS = 11111;
 
-    public static String createHash(String pass) {
+    public static String createHash(char[] pass) {
         char[] passArray;
         byte[] salt, hash;
 
         ITERATIONS = 11111 + (int) (Math.random() * 11111);
 
-        passArray = pass.toCharArray();
+        passArray = pass;
         salt = new byte[SALT_SIZE];
 
         SecureRandom random = new SecureRandom();
@@ -50,10 +50,10 @@ public class Authentication {
         return new byte[HASH_SIZE];
     }
 
-    public static boolean checkPassword(String password, String hash) {
+    public static boolean checkPassword(char[] password, String hash) {
         String[] secret = hash.split(":");
         ITERATIONS = Integer.parseInt(secret[0]);
-        byte[] byteHash = getHash(password.toCharArray(), Base64.getDecoder().decode(secret[1]));
+        byte[] byteHash = getHash(password, Base64.getDecoder().decode(secret[1]));
         String pass = Base64.getEncoder().encodeToString(byteHash);
         return pass.equals(secret[2]);
     }
