@@ -1,17 +1,16 @@
 package client;
 
 import data.Account;
+import data.Authentication;
 import java.awt.event.ActionEvent;
 import javax.swing.*;
 
-public class AuthenticationPanel extends JPanel {
+public class AuthenticationPanel extends GenericPanel {
     
-    private ClientLock syncSend;
-    //TODO: syncReceive may not be necessary
-    private ClientLock syncReceive;
-    public static Account account;
+    private String tempUsername;
+    private char[] tempPassword;
     
-    public AuthenticationPanel(ClientLock syncSend, ClientLock syncReceive) {
+    public AuthenticationPanel(ClientLock syncSend) {
         super();
         JButton create = new JButton("Create Account");
         JButton login = new JButton("Login");
@@ -20,30 +19,30 @@ public class AuthenticationPanel extends JPanel {
         JLabel userLabel = new JLabel("Username");
         JLabel passLabel = new JLabel("Password");
         this.syncSend = syncSend;
-        this.syncReceive = syncReceive;
         
         username.setColumns(20);
         password.setColumns(20);
         
         create.addActionListener((ActionEvent e) -> {
-            //TODO: determine constant 16
+            //FIXME: determine constant 16
             if(e.getModifiers() == 16) {
-                account = new Account(username.getText(), password.getPassword());
-                account.createNewAccount();
-                //TODO: Properly implement message protocol
-                sendMessage("/createAccount", username.getText(), new String(password.getPassword()));
+//                PanelManager.initAccount(username.getText(), password.getPassword());
+//                PanelManager.getAccount().createNewAccount();
+                sendMessage("/createAccount " + username.getText() + " " + Authentication.createHash(password.getPassword()));
             }            
         });
         
         login.addActionListener((ActionEvent e) -> {
-            //TODO: determine constant 16
+            //FIXME: determine constant 16
             if(e.getModifiers() == 16) {
-                account = new Account(username.getText(), password.getPassword());
-                if(account.login()) {
-                    Client.setPanel("classic game");
-                }
-                //TODO: Properly implement message protocol
-                sendMessage("/login", username.getText(), new String(password.getPassword()));
+                //FIXME: Temporary account disabling; uncomment after refactoring is complete
+//                PanelManager.initAccount(username.getText(), password.getPassword());
+//                if(PanelManager.getAccount().login()) {
+//                    PanelManager.setPanel(PanelManager.SINGLE_PLAYER_CLASSIC);
+//                }
+                tempUsername = username.getText();
+                tempPassword = password.getPassword();
+                sendMessage("/loginUser " + tempUsername);
             }            
         });
         
@@ -55,13 +54,26 @@ public class AuthenticationPanel extends JPanel {
         this.add(create);
     }
     
-    private void sendMessage(String command, String username, String password){
-        this.syncSend.lock.lock();
-        try {
-            this.syncSend.message = (command + " " + username + " " + password).getBytes();
-            this.syncSend.condvar.signalAll();
-        } finally {
-            this.syncSend.lock.unlock();
+    @Override
+    public void processServerMsg(String serverMsg){
+        String[] headerAndServer = serverMsg.split(" ", 2);
+        String[] splitMsg;
+        //FIXME: sending message in receive message thread currently; change implementation
+        switch(headerAndServer[0]){
+            case "/loginUser_rsp":
+                //FIXME: temporary
+                splitMsg = headerAndServer[1].split(" ");
+                splitMsg[0] = splitMsg[0].trim();
+                splitMsg[1] = splitMsg[1].trim();
+                sendMessage("/loginPass " + tempUsername + " " + Authentication.createHash(tempPassword, splitMsg[0], Integer.parseInt(splitMsg[1])));
+                break;
+            case "/loginPass_rsp":
+                //FIXME: temporary
+                String response = headerAndServer[1].trim();
+                PanelManager.setPanel(PanelManager.COOP_CLASSIC);
+                break;
+            default:
+                System.err.println("Unknown server message; cannot process");
         }
     }
 }

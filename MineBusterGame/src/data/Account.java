@@ -1,7 +1,7 @@
 package data;
 
-import client.GameManager;
-import static client.GameManager.field;
+import client.PanelManager;
+import client.SinglePlayerPanel;
 import minebustergame.MineField;
 import util.Serialization;
 
@@ -40,13 +40,13 @@ public class Account {
     }
     
     public void save() {
-        Serialization.serialize(GameManager.field, name);
+        Serialization.serialize(((SinglePlayerPanel) PanelManager.getMainPanel()).getField(), name);
     }
     
     public void load() {
         MineField f = (MineField)Serialization.deserialize(name);
         f.setNeighbours();
-        GameManager.setField(f);
+        ((SinglePlayerPanel) PanelManager.getMainPanel()).setField(f);
     }
     
     private void clearPassword() {

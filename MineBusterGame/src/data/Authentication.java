@@ -57,4 +57,11 @@ public class Authentication {
         String pass = Base64.getEncoder().encodeToString(byteHash);
         return pass.equals(secret[2]);
     }
+    
+    public static String createHash(char[] pass, String salt, int numIterations){
+        ITERATIONS = numIterations;
+        byte[] byteHash = getHash(pass, Base64.getDecoder().decode(salt));
+        String hashedPass = Base64.getEncoder().encodeToString(byteHash);
+        return hashedPass;
+    }
 }

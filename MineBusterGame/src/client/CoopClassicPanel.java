@@ -1,5 +1,6 @@
 package client;
 
+import data.Authentication;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.InputEvent;
@@ -16,8 +17,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import minebustergame.MineField;
 import minebustergame.Tile;
+import util.Serialization;
 
-public class SinglePlayerPanel extends GamePanel{
+public class CoopClassicPanel extends GamePanel{
     
     private Graphics2D graphics;
     private BufferedImage mainImage;
@@ -40,7 +42,7 @@ public class SinglePlayerPanel extends GamePanel{
     private long begTime;
     private JLabel labelTime;
     
-    public SinglePlayerPanel (ClientLock syncSend){
+    public CoopClassicPanel (ClientLock syncSend){
         super();
         setFocusable(true);
         this.requestFocus();
@@ -214,6 +216,14 @@ public class SinglePlayerPanel extends GamePanel{
         return field;
     }
     
+    private void processKeyPress(String key){
+        switch(key){
+            case "f":
+                //FIXME: change constant
+                field.generateFog(5);
+        }
+    }
+    
     //FIXME: potentially change implementatino to further encapsulate method
     public void setField(MineField f) {
         field = f;
@@ -224,39 +234,43 @@ public class SinglePlayerPanel extends GamePanel{
     //TODO: Implement
     @Override
     public void processServerMsg(String serverMsg){
-        System.out.println("Single player mode; not processing server messages currently");
+        String[] headerAndServer = serverMsg.split(" ", 2);
+        String[] splitMsg;
+        int tileX, tileY;
+        
+        switch(headerAndServer[0]){
+            case "/getMinefield_rsp":
+                splitMsg = headerAndServer[1].split(" ", 3);
+                setField((MineField) Serialization.deserializeFromString(splitMsg[2]));
+                break;
+            case "/clickAck":
+                break;
+            case "/keyPressAck":
+                break;
+            case "/updateTile":
+                splitMsg = headerAndServer[1].split(" ");
+                switch(splitMsg[0]){
+                    case "reveal":
+                        tileX = Integer.parseInt(splitMsg[1]);
+                        tileY = Integer.parseInt(splitMsg[2].trim());
+                        checkNeighbours = true;
+                        revealTile(tileX, tileY);
+                        break;
+                    case "flag":
+                        tileX = Integer.parseInt(splitMsg[1]);
+                        tileY = Integer.parseInt(splitMsg[2].trim());
+                        flagTile(tileX, tileY);
+                    case "pressKey":
+                        processKeyPress(splitMsg[1].trim());
+                }
+                break;
+            default:
+                System.err.println("Unknown server message; cannot process");
+        }
     }
     
     @Override
     public void processEvent(String event){
-        String[] splitEvt = event.split(" ");
-        int tileX, tileY;
-        switch(splitEvt[0]){
-            case "/click":
-                switch(Integer.parseInt(splitEvt[1])){
-                    case MouseEvent.BUTTON1:
-                        tileX = Integer.parseInt(splitEvt[2]);
-                        tileY = Integer.parseInt(splitEvt[3]);
-                        checkNeighbours = true;
-                        revealTile(tileX, tileY);
-                        break;
-                    case MouseEvent.BUTTON2:
-                        tileX = Integer.parseInt(splitEvt[2]);
-                        tileY = Integer.parseInt(splitEvt[3]);
-                        flagTile(tileX, tileY);
-                        break;
-                    case MouseEvent.BUTTON3:
-                        Tile.TILE_SIZE += 1;
-                        break;
-                    default:
-                        System.err.println("Error: Unknown mouse click occurred (mouse click " + splitEvt[1] + ")");
-                }
-                break;
-            case "/keyPress":
-                System.out.println("Key press actions currently unavailable");
-                break;
-            default:
-                System.err.println("Error: Unknown event occurred");
-        }
+        sendMessage(event);
     }
 }

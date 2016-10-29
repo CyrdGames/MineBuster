@@ -21,9 +21,9 @@ public class Tile {
     private static final BufferedImage[] IMAGE = new BufferedImage[13];
     
     private int x, y;
-    private int type; //0 -> 8, 9 - Bomb
+    private int type;
     public int currentType;
-    private int state; //0 - unrevealed     1 - flagged    2 - revealed
+    private int state;
     private transient ArrayList<Tile> neighbours = null;
 
     public Tile(int x, int y, int size) {

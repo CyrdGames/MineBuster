@@ -18,57 +18,58 @@ public class ClientCom extends Thread{
     private int port = 4445;
     private DatagramSocket socket;
     private ClientLock syncSend;
-    private ClientLock syncReceive;
     
-    public ClientCom(ClientLock syncSend, ClientLock syncReceive) {
+    public ClientCom(ClientLock syncSend) {
             this.syncSend = syncSend;
-            this.syncReceive = syncReceive;
     }
     
     @Override
     public void run(){
         try {
-            this.address = InetAddress.getByName("192.168.3.194");
+            this.address = InetAddress.getByName("192.168.12.109");
             this.socket = new DatagramSocket();
+            
+            performConnectionHandshake();
             
             Executors.newSingleThreadExecutor().execute(new Runnable() {
                 @Override
                 public void run() {
                     //TODO: Arbitrary length of 100; determine appropriate size later
-                    syncReceive.message = new byte[100];
+                    byte[] message;
+                    String strMsg;
                     try{
                         while (true){
                                 
+                            message = new byte[512];
+                            
                             //Receive data packet from server
-                            DatagramPacket packet = new DatagramPacket(syncReceive.message, syncReceive.message.length);
+                            DatagramPacket packet = new DatagramPacket(message, message.length);
+                            System.out.println("Receiving........");
                             socket.receive(packet);
                             
                             System.out.println("Port: " + socket.getPort());
-//                            port = socket.getPort();
                             
                             //TODO: Fix up prints and variable creation
-                            String received = new String(packet.getData(), 0, packet.getLength());
-                            System.out.println("Received server message: " + received);
+                            strMsg = new String(packet.getData(), 0, packet.getLength());
+                            System.out.println("Received server message (packet format): " + strMsg);
                             
-                            received = new String(syncReceive.message, 0, syncReceive.message.length);
-                            System.out.println("Received server message: " + received);
-
-                            syncReceive.lock.lock();
-                            try{
-                                String[] message = received.split(" ");
-                                if (message[0].equals("/setport")){
-                                    port = Integer.parseInt(message[1].trim());
-                                }
-                                syncReceive.condvar.signalAll();
-                            } finally {
-                                syncReceive.lock.unlock();
+                            strMsg = new String(message, 0, message.length);
+                            System.out.println("Received server message (message format): " + strMsg);
+                            
+                            if (strMsg.startsWith("/getMinefield_rsp")){
+                                String[] splitMsg = strMsg.split(" ", 4);
+                                GroupComReceive groupCom = new GroupComReceive(socket, Integer.parseInt(splitMsg[1]), splitMsg[2]);
+                                groupCom.start();
                             }
+                            PanelManager.getMainPanel().processServerMsg(strMsg);
                         }
                     } catch (IOException ex) {
                         Logger.getLogger(ClientCom.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             });
+            
+            DatagramPacket packet;
             
             while(true) {
                 syncSend.lock.lock();
@@ -80,7 +81,7 @@ public class ClientCom extends Thread{
                     System.out.println("Sync Send Condvar: " + new String(syncSend.message));
                     
                     //Send data packet to server
-                    DatagramPacket packet = new DatagramPacket(syncSend.message, syncSend.message.length, address, port);
+                    packet = new DatagramPacket(syncSend.message, syncSend.message.length, address, port);
                     socket.send(packet);
                     
                     System.out.println("Sent message request");
@@ -98,6 +99,57 @@ public class ClientCom extends Thread{
         } catch (IOException ex) {
             Logger.getLogger(ClientCom.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void performConnectionHandshake() throws IOException{
+        byte[] message = "/requestPort".getBytes();
+        String[] splitMsg;
+        
+        System.out.println("Sending port request...");
+        
+        DatagramPacket packet = new DatagramPacket(message, message.length, address, port);
+        socket.send(packet);
+        
+        System.out.println("Port request sent");
+        
+        message = new byte[100];
+        packet = new DatagramPacket(message, message.length, address, port);
+        socket.receive(packet);
+        splitMsg = (new String(message)).split(" ");
+        
+        System.out.println("received message: " + new String(message));
+        
+        if (splitMsg[0].equals("/setPort")){
+            port = Integer.parseInt(splitMsg[1].trim());
+            System.out.println("Set port to " + port);
+        } else {
+            System.err.println("Error: Connection Handshake failed");
+            return;
+        }
+        
+        message = "/confirmPort".getBytes();
+        packet = new DatagramPacket(message, message.length, address, port);
+        socket.send(packet);
+        
+        message = new byte[100];
+        packet = new DatagramPacket(message, message.length, address, port);
+        socket.receive(packet);
+        splitMsg = (new String(message)).split(" ");
+        
+        System.out.println("received message: " + new String(message));
+        
+        if (!splitMsg[0].startsWith("/confirmConnection")){
+            System.err.println("Error: Connection Handshake failed");
+            return;
+        }
+        
+        message = "/ackResponse".getBytes();
+        packet = new DatagramPacket(message, message.length, address, port);
+        socket.send(packet);
+        
+        message = "random message iz here".getBytes();
+        packet = new DatagramPacket(message, message.length, address, port);
+        socket.send(packet);
     }
     
 }

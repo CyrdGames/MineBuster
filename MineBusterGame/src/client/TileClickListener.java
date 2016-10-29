@@ -14,8 +14,7 @@ public class TileClickListener implements MouseListener, KeyListener {
     private int heldLeftX, heldLeftY;
     //RMB
     private int heldRightX, heldRightY;
-    private GameManager manager;
-    private ClientLock syncSend;
+    private GamePanel gamePanel;
     
     public TileClickListener(){
         this.numLeftClicks = 0;
@@ -26,10 +25,9 @@ public class TileClickListener implements MouseListener, KeyListener {
         this.numTileClicks = 0;
     }
     
-    public TileClickListener(GameManager manager, ClientLock syncSend){
+    public TileClickListener(GamePanel gamePanel){
         this();
-        this.manager = manager;
-        this.syncSend = syncSend;
+        this.gamePanel = gamePanel;
     }
     
     @Override
@@ -59,23 +57,27 @@ public class TileClickListener implements MouseListener, KeyListener {
         if (e.getButton() == MouseEvent.BUTTON1){
             if ( checkTileClick(e.getX(), e.getY(), this.heldLeftX, this.heldLeftY) ){
                 int[] tile = determineTile(e.getX(), e.getY());
-                sendMessage(e.getButton(), tile);
-                this.manager.checkNeighbours = true;
-                this.manager.revealTile(tile[0], tile[1]);
+                //FIXME: Change processing of event
+                gamePanel.processEvent("/click " + e.getButton() + " " + tile[0] + " " + tile[1]);
+                //gamePanel.sendMessage("/click " + e.getButton() + " " + tile[0] + " " + tile[1]);
+                //this.gamePanel.checkNeighbours = true;
+                //this.gamePanel.revealTile(tile[0], tile[1]);
             }
             this.heldLeftX = -1;
             this.heldLeftY = -1;
         } else if (e.getButton() == MouseEvent.BUTTON3){
             if ( checkTileClick(e.getX(), e.getY(), this.heldRightX, this.heldRightY) ){
                 int[] tile = determineTile(e.getX(), e.getY());
-                sendMessage(e.getButton(), tile);
-                this.manager.flagTile(tile[0], tile[1]);
-//                this.manager.updateTileState(tile[0], tile[1], GameManager.FLAGGED);
+                //FIXME: Change processing of event
+                gamePanel.processEvent("/click " + e.getButton() + " " + tile[0] + " " + tile[1]);
+                //gamePanel.sendMessage("/click " + e.getButton() + " " + tile[0] + " " + tile[1]);
+                //this.gamePanel.flagTile(tile[0], tile[1]);
             }
             this.heldRightX = -1;
             this.heldRightY = -1;
         } else if (e.getButton() == MouseEvent.BUTTON2){
-            Tile.TILE_SIZE += 1;
+            gamePanel.processEvent("/click " + e.getButton());
+            //Tile.TILE_SIZE += 1;
         }
         int[] tile = determineTile(e.getX(), e.getY());
         System.out.println("Tile [" + tile[0] + "][" + tile[1] + "] pressed");
@@ -103,11 +105,17 @@ public class TileClickListener implements MouseListener, KeyListener {
 
     @Override
     public void keyTyped(KeyEvent e) {
-        if(e.getKeyChar() == 's') {
-            AuthenticationPanel.account.save();
-        } else if(e.getKeyChar() == 'l') {
-            AuthenticationPanel.account.load();
-        } 
+        char key = e.getKeyChar();
+        if (key == 's' || key == 'l' || key == 'f'){
+            gamePanel.processEvent("keyPress " + key);
+        }
+//        if(e.getKeyChar() == 's') {
+//            gamePanel.processEvent("/keyPress s");
+//            //PanelManager.getAccount().save();
+//        } else if(e.getKeyChar() == 'l') {
+//            gamePanel.processEvent("/keyPress l");
+//            //PanelManager.getAccount().load();
+//        } 
         
         
     }
@@ -115,22 +123,13 @@ public class TileClickListener implements MouseListener, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if(e.getKeyCode() == 17) {
-            this.manager.toggleAssist();
+            gamePanel.processEvent("/toggleAssist");
+            //this.gamePanel.toggleAssist();
         }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {    
-    }
-    
-    private void sendMessage(int mouseButton, int[] tile){
-        this.syncSend.lock.lock();
-        try {
-            this.syncSend.message = ("/click " + mouseButton + " " + tile[0] + " " + tile[1]).getBytes();
-            this.syncSend.condvar.signalAll();
-        } finally {
-            this.syncSend.lock.unlock();
-        }
     }
     
 }
