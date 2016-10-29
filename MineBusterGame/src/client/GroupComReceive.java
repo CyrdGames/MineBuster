@@ -15,13 +15,14 @@ public class GroupComReceive extends Thread{
     private MulticastSocket groupSocket;
     
     private int port;
-    private InetAddress groupId;
+    private InetAddress groupInet;
     
     public GroupComReceive(DatagramSocket globalSocket, int port, String groupId){
+        System.out.println("port: " + port + " | groupId: " + groupId);
         this.globalSocket = globalSocket;
         this.port = port;
         try {
-            this.groupId = InetAddress.getByName(groupId);
+            this.groupInet = InetAddress.getByName(groupId);
         } catch (UnknownHostException ex) {
             Logger.getLogger(GroupComReceive.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -30,8 +31,11 @@ public class GroupComReceive extends Thread{
     @Override
     public void run(){
         try {
+            System.out.println("Running group com thread");
+            
             groupSocket = new MulticastSocket(port);
-            groupSocket.joinGroup(groupId);
+            //groupSocket.setInterface(InetAddress.getLocalHost());
+            //groupSocket.joinGroup(groupInet);
             
             byte[] message;
             
@@ -42,10 +46,11 @@ public class GroupComReceive extends Thread{
 
                 //Receive data packet from server
                 DatagramPacket packet = new DatagramPacket(message, message.length);
-                System.out.println("Receiving........");
+                System.out.println("Receiving group........");
+                groupSocket.joinGroup(groupInet);
                 groupSocket.receive(packet);
 
-                System.out.println("Port: " + groupSocket.getPort());
+                System.out.println("Group port: " + groupSocket.getPort());
 
                 //TODO: Fix up prints and variable creation
                 strMsg = new String(packet.getData(), 0, packet.getLength());

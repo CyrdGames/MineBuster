@@ -42,7 +42,11 @@ public class AuthenticationPanel extends GenericPanel {
 //                }
                 tempUsername = username.getText();
                 tempPassword = password.getPassword();
-                sendMessage("/loginUser " + tempUsername);
+                if (tempUsername.length() == 0 && tempPassword.length == 0){
+                    PanelManager.setPanel(PanelManager.SINGLE_PLAYER_CLASSIC);
+                } else{
+                    sendMessage("/loginUser " + tempUsername);
+                }
             }            
         });
         
@@ -59,7 +63,7 @@ public class AuthenticationPanel extends GenericPanel {
         String[] headerAndServer = serverMsg.split(" ", 2);
         String[] splitMsg;
         //FIXME: sending message in receive message thread currently; change implementation
-        switch(headerAndServer[0]){
+        switch(headerAndServer[0].trim()){
             case "/loginUser_rsp":
                 //FIXME: temporary
                 splitMsg = headerAndServer[1].split(" ");
@@ -70,7 +74,11 @@ public class AuthenticationPanel extends GenericPanel {
             case "/loginPass_rsp":
                 //FIXME: temporary
                 String response = headerAndServer[1].trim();
-                PanelManager.setPanel(PanelManager.COOP_CLASSIC);
+                if (response.equals("success")){
+                    PanelManager.setPanel(PanelManager.COOP_CLASSIC);
+                } else {
+                    System.out.println("response: " + response);
+                }
                 break;
             default:
                 System.err.println("Unknown server message; cannot process");

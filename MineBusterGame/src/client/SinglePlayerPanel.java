@@ -69,7 +69,7 @@ public class SinglePlayerPanel extends GamePanel{
         
         begTime = System.currentTimeMillis();
         
-        labelTime = new JLabel("Time: " + (System.currentTimeMillis() - begTime));
+        //labelTime = new JLabel("Time: " + (System.currentTimeMillis() - begTime));
     }
     
     @Override
@@ -87,10 +87,10 @@ public class SinglePlayerPanel extends GamePanel{
     public void run() {     
         setFocusable(true);
         requestFocus();
-        this.add(labelTime);
+        //this.add(labelTime);
         while (running){
             //FIXME: move label to appropriate location; potentially change
-            labelTime.setText("Time: " + (System.currentTimeMillis() - begTime));
+            //labelTime.setText("Time: " + (System.currentTimeMillis() - begTime));
             draw();
             //TODO: Implement proper framerate control
 //            try {
@@ -240,12 +240,12 @@ public class SinglePlayerPanel extends GamePanel{
                         checkNeighbours = true;
                         revealTile(tileX, tileY);
                         break;
-                    case MouseEvent.BUTTON2:
+                    case MouseEvent.BUTTON3:
                         tileX = Integer.parseInt(splitEvt[2]);
                         tileY = Integer.parseInt(splitEvt[3]);
                         flagTile(tileX, tileY);
                         break;
-                    case MouseEvent.BUTTON3:
+                    case MouseEvent.BUTTON2:
                         Tile.TILE_SIZE += 1;
                         break;
                     default:

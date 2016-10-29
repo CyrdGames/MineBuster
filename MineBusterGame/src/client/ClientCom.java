@@ -18,9 +18,11 @@ public class ClientCom extends Thread{
     private int port = 4445;
     private DatagramSocket socket;
     private ClientLock syncSend;
+    private int numBytes;
     
     public ClientCom(ClientLock syncSend) {
             this.syncSend = syncSend;
+            numBytes = 512;
     }
     
     @Override
@@ -40,7 +42,7 @@ public class ClientCom extends Thread{
                     try{
                         while (true){
                                 
-                            message = new byte[512];
+                            message = new byte[numBytes];
                             
                             //Receive data packet from server
                             DatagramPacket packet = new DatagramPacket(message, message.length);
@@ -56,10 +58,15 @@ public class ClientCom extends Thread{
                             strMsg = new String(message, 0, message.length);
                             System.out.println("Received server message (message format): " + strMsg);
                             
-                            if (strMsg.startsWith("/getMinefield_rsp")){
+                            if (strMsg.startsWith("/loginPass_rsp success")){
+                                numBytes = 262144;
+                            }
+                            else if (strMsg.startsWith("/getMineField_rsp")){
+                                System.out.println("DOING MINEFIELD STUFF");
                                 String[] splitMsg = strMsg.split(" ", 4);
                                 GroupComReceive groupCom = new GroupComReceive(socket, Integer.parseInt(splitMsg[1]), splitMsg[2]);
                                 groupCom.start();
+                                numBytes = 512;
                             }
                             PanelManager.getMainPanel().processServerMsg(strMsg);
                         }

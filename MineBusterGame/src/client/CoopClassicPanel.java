@@ -71,7 +71,7 @@ public class CoopClassicPanel extends GamePanel{
         
         begTime = System.currentTimeMillis();
         
-        labelTime = new JLabel("Time: " + (System.currentTimeMillis() - begTime));
+        //labelTime = new JLabel("Time: " + (System.currentTimeMillis() - begTime));
     }
     
     @Override
@@ -86,13 +86,14 @@ public class CoopClassicPanel extends GamePanel{
     }
     
     @Override
-    public void run() {     
+    public void run() {
+        sendMessage("/getMineField");
         setFocusable(true);
         requestFocus();
-        this.add(labelTime);
+        //this.add(labelTime);
         while (running){
             //FIXME: move label to appropriate location; potentially change
-            labelTime.setText("Time: " + (System.currentTimeMillis() - begTime));
+            //labelTime.setText("Time: " + (System.currentTimeMillis() - begTime));
             draw();
             //TODO: Implement proper framerate control
 //            try {
@@ -238,10 +239,10 @@ public class CoopClassicPanel extends GamePanel{
         String[] splitMsg;
         int tileX, tileY;
         
-        switch(headerAndServer[0]){
-            case "/getMinefield_rsp":
+        switch(headerAndServer[0].trim()){
+            case "/getMineField_rsp":
                 splitMsg = headerAndServer[1].split(" ", 3);
-                setField((MineField) Serialization.deserializeFromString(splitMsg[2]));
+                setField((MineField) Serialization.deserializeFromString(splitMsg[2].trim()));
                 break;
             case "/clickAck":
                 break;

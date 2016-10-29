@@ -42,10 +42,10 @@ public class PanelManager {
                 break;
             case COOP_CLASSIC:
                 //FIXME: Currently single player classic
-                System.out.println("single player classic panel selected");
-                mainPanel = new SinglePlayerPanel(syncSend);
+                System.out.println("coop classic panel selected");
+                mainPanel = new CoopClassicPanel(syncSend);
                 mainFrame.setContentPane(mainPanel);
-                mainFrame.setTitle("MineBuster - Single Player Classic");
+                mainFrame.setTitle("MineBuster - Coop Classic");
                 break;
             default:
                 System.err.print("Error: invalid panel selection");
