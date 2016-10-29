@@ -129,7 +129,7 @@ public class Database {
         return json;
     }
     
-    public static void addNewAccount(String name, String iteration, String salthash, String hash) {
+    public static boolean addNewAccount(String name, String iteration, String salthash, String hash) {
 
         Node node = null;
 
@@ -137,7 +137,7 @@ public class Database {
 
         if (node != null) {
             System.out.println("User '" + name + "' already exists.");
-            return;
+            return false;
         }
 
         try {
@@ -166,6 +166,8 @@ public class Database {
         doc.getFirstChild().appendChild(account);
         removeEmptyText(doc);
         writeToFile(doc, fXmlFile);
+        
+        return true;
     }
 
     private static void writeToFile(Document d, File f) {

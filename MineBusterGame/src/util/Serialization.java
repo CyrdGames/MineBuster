@@ -16,4 +16,14 @@ public class Serialization {
         Gson decoder = new Gson();        
         return decoder.fromJson(Database.getSave(filename), MineField.class);
     }
+    
+    public static String serializeToString(Object o) {
+        Gson encoder = new Gson();
+        return encoder.toJson(o);
+    }
+    
+    public static Object deserializeFromString(String str) {
+        Gson decoder = new Gson();
+        return decoder.fromJson(str, MineField.class);
+    }
 }

@@ -9,20 +9,37 @@ public class Account {
 
     String name;
     char[] password;
+    String hash;
     boolean loggedIn = false;
+    boolean duplicate = false;
 
     public Account(String name, char[] password) {
         this.name = name;
         this.password = password;
     }
-
-    public void createNewAccount() {
-        Database.init();
-        String[] array = Authentication.createHash(password).split(":");
-        Database.addNewAccount(name, array[0], array[1], array[2]);
-        clearPassword();
+    
+    public Account(String name, String hash) {
+        this.name = name;
+        this.hash = hash;
+        this.password = new char[1];
     }
 
+    public boolean createNewAccount() {
+        Database.init();
+        String[] array = Authentication.createHash(password).split(":");
+        duplicate = Database.addNewAccount(name, array[0], array[1], array[2]);
+        clearPassword();
+        return duplicate;
+    }
+
+    public boolean createNewAccount(boolean isHash) {
+        Database.init();
+        String[] array = hash.split(":");
+        duplicate = Database.addNewAccount(name, array[0], array[1], array[2]);
+        clearPassword();        
+        return duplicate;
+    }
+    
     public boolean login() {
         Database.init();
         String hash = Database.getAccountInfo(name);
@@ -51,7 +68,7 @@ public class Account {
     
     private void clearPassword() {
         for(char c : password) {
-            c = 0;
+            c = (char)0;
         }
     }
 }
